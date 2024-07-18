@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microshift-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microshift-exporter
+  template:
+    metadata:
+      labels:
+        app: microshift-exporter
+    spec:
+      securityContext:
+        privileged: true
+        runAsUser: 0
+      containers:
+      - name: microshift-exporter
+        image: quay.io/agullon/microshift-exporter:latest
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - mountPath: /host/root
+          mountPropagation: HostToContainer
+          name: root
+      readOnly: true
+      volumes:
+      - hostPath:
+          path: /
+          type: ""
+        name: root
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microshift-exporter
+spec:
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: microshift-exporter
+  type: LoadBalancer
+status:
+  loadBalancer: {}
